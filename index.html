@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seguimiento de Compras</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <span class="logo-icon">&#128230;</span>
+                <span class="logo-text">SC/PO Tracker</span>
+            </div>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="#" class="nav-item active" data-view="dashboard">
+                <span class="nav-icon">&#128202;</span>
+                <span>Dashboard</span>
+            </a>
+            <a href="#" class="nav-item" data-view="ordenes">
+                <span class="nav-icon">&#128196;</span>
+                <span>SC / PO</span>
+            </a>
+            <a href="#" class="nav-item" data-view="nueva">
+                <span class="nav-icon">&#10133;</span>
+                <span>Nueva SC</span>
+            </a>
+        </nav>
+        <div class="sidebar-footer">
+            <small>SC/PO Tracker v2.0</small>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+
+        <!-- Top Bar -->
+        <header class="topbar">
+            <button class="menu-toggle" id="menuToggle">&#9776;</button>
+            <h1 id="pageTitle">Dashboard</h1>
+            <div class="topbar-actions">
+                <button class="btn btn-secondary" id="btnImportJSON" title="Importar datos">&#128228; Importar</button>
+                <button class="btn btn-secondary" id="btnExportJSON" title="Exportar copia de seguridad">&#128229; Exportar</button>
+                <button class="btn btn-primary" id="btnNuevaOrden">&#10133; Nueva SC</button>
+            </div>
+        </header>
+
+        <!-- Dashboard View -->
+        <section class="view active" id="viewDashboard">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon stat-total">&#128203;</div>
+                    <div class="stat-info">
+                        <span class="stat-number" id="statTotal">0</span>
+                        <span class="stat-label">Total SC</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon stat-pendiente">&#9203;</div>
+                    <div class="stat-info">
+                        <span class="stat-number" id="statOpen">0</span>
+                        <span class="stat-label">Open</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon stat-transito">&#128666;</div>
+                    <div class="stat-info">
+                        <span class="stat-number" id="statClose">0</span>
+                        <span class="stat-label">Close</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon stat-retrasado">&#9888;</div>
+                    <div class="stat-info">
+                        <span class="stat-number" id="statCancelled">0</span>
+                        <span class="stat-label">Cancelled</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon stat-entregado">&#128200;</div>
+                    <div class="stat-info">
+                        <span class="stat-number" id="statAvgAging">0</span>
+                        <span class="stat-label">Avg Aging (días)</span>
+                    </div>
+                </div>
+            </div>
+            <div class="dashboard-grid">
+                <div class="card">
+                    <div class="card-header"><h3>&#128197; SC Open</h3></div>
+                    <div class="card-body">
+                        <div id="scRecientes" class="list-container">
+                            <p class="empty-message">No hay SC registradas</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header"><h3>&#9888; SC con Mayor Aging</h3></div>
+                    <div class="card-body">
+                        <div id="scAging" class="list-container">
+                            <p class="empty-message">No hay SC registradas</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Órdenes View -->
+        <section class="view" id="viewOrdenes">
+            <div class="card">
+                <div class="card-header toolbar">
+                    <div class="search-box">
+                        <input type="text" id="searchInput" placeholder="Buscar por SC, PO, Customer, Supplier...">
+                    </div>
+                    <div class="filters">
+                        <select id="filterStatus">
+                            <option value="">Todos los Status</option>
+                            <option value="Open">Open</option>
+                            <option value="Close">Close</option>
+                            <option value="Cancelled">Cancelled</option>
+                        </select>
+                        <select id="filterFreight">
+                            <option value="">Todos los Freight</option>
+                            <option value="Ground">Ground</option>
+                            <option value="Ocean">Ocean</option>
+                            <option value="Air">Air</option>
+                        </select>
+                        <button class="btn btn-secondary" id="btnExportCSV">&#128229; CSV</button>
+                    </div>
+                </div>
+                <div class="card-body table-responsive">
+                    <table id="tablaOrdenes">
+                        <thead>
+                            <tr>
+                                <th>SC</th>
+                                <th>PO</th>
+                                <th>Customer</th>
+                                <th>Supplier</th>
+                                <th>Equipment/Service</th>
+                                <th>Status</th>
+                                <th>Aging</th>
+                                <th>Costo</th>
+                                <th>ETA ELP</th>
+                                <th>Avance</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaBody"></tbody>
+                    </table>
+                    <div id="emptyTable" class="empty-table">
+                        <p>&#128203; No se encontraron SC</p>
+                        <button class="btn btn-primary" id="btnNuevaOrdenEmpty">Crear primera SC</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Nueva SC View -->
+        <section class="view" id="viewNueva">
+            <div class="card form-card">
+                <div class="card-header">
+                    <h3 id="formTitle">&#128221; Registrar Nueva SC</h3>
+                </div>
+                <div class="card-body">
+                    <form id="formOrden">
+                        <input type="hidden" id="editarId">
+
+                        <!-- Tabs -->
+                        <div class="tabs">
+                            <button type="button" class="tab active" data-tab="tab-sc">Datos SC</button>
+                            <button type="button" class="tab" data-tab="tab-avance">SC Status</button>
+                            <button type="button" class="tab" data-tab="tab-po">PO Info</button>
+                            <button type="button" class="tab" data-tab="tab-freight">Freight</button>
+                            <button type="button" class="tab" data-tab="tab-fechas">Fechas</button>
+                        </div>
+
+                        <!-- Tab: Datos SC -->
+                        <div class="tab-content active" id="tab-sc">
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="sc">SC *</label>
+                                    <input type="text" id="sc" required placeholder="Ej: SC-2024-001">
+                                </div>
+                                <div class="form-group">
+                                    <label for="customer">Customer *</label>
+                                    <input type="text" id="customer" required placeholder="Nombre del cliente">
+                                </div>
+                                <div class="form-group full-width">
+                                    <label for="equipment">Equipment / Tool / Service *</label>
+                                    <textarea id="equipment" rows="3" required placeholder="Descripción del equipo, herramienta o servicio..."></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label for="startScDate">Start SC Date *</label>
+                                    <input type="date" id="startScDate" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="ep">EP</label>
+                                    <input type="text" id="ep" placeholder="EP">
+                                </div>
+                                <div class="form-group">
+                                    <label>SC Aging</label>
+                                    <input type="text" id="scAging" readonly class="readonly-field" placeholder="Se calcula automáticamente">
+                                </div>
+                                <div class="form-group">
+                                    <label for="status">Status *</label>
+                                    <select id="status" required>
+                                        <option value="Open">Open</option>
+                                        <option value="Close">Close</option>
+                                        <option value="Cancelled">Cancelled</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tab: SC Status (Avance) -->
+                        <div class="tab-content" id="tab-avance">
+                            <p class="tab-description">Selecciona el estado de cada autorización: <strong>NA</strong> (No Aplica) | <strong>IP</strong> (En Proceso) | <strong>OK</strong> (Completado)</p>
+                            <div class="form-grid grid-3">
+                                <div class="form-group">
+                                    <label>MOC</label>
+                                    <select id="avMOC"><option value="">Seleccionar...</option><option value="NA">NA</option><option value="IP">IP</option><option value="OK">OK</option></select>
+                                </div>
+                                <div class="form-group">
+                                    <label>SOW</label>
+                                    <select id="avSOW"><option value="">Seleccionar...</option><option value="NA">NA</option><option value="IP">IP</option><option value="OK">OK</option></select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Alta Proveedor</label>
+                                    <select id="avAltaProv"><option value="">Seleccionar...</option><option value="NA">NA</option><option value="IP">IP</option><option value="OK">OK</option></select>
+                                </div>
+                                <div class="form-group">
+                                    <label>SC User</label>
+                                    <select id="avSCUser"><option value="">Seleccionar...</option><option value="NA">NA</option><option value="IP">IP</option><option value="OK">OK</option></select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Compras / GIP</label>
+                                    <select id="avCompras"><option value="">Seleccionar...</option><option value="NA">NA</option><option value="IP">IP</option><option value="OK">OK</option></select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Tráfico y Aduanas</label>
+                                    <select id="avTrafico"><option value="">Seleccionar...</option><option value="NA">NA</option><option value="IP">IP</option><option value="OK">OK</option></select>
+                                </div>
+                                <div class="form-group">
+                                    <label>BU WC</label>
+                                    <select id="avBUWC"><option value="">Seleccionar...</option><option value="NA">NA</option><option value="IP">IP</option><option value="OK">OK</option></select>
+                                </div>
+                                <div class="form-group">
+                                    <label>EHS</label>
+                                    <select id="avEHS"><option value="">Seleccionar...</option><option value="NA">NA</option><option value="IP">IP</option><option value="OK">OK</option></select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Fixed Asset</label>
+                                    <select id="avFixedAsset"><option value="">Seleccionar...</option><option value="NA">NA</option><option value="IP">IP</option><option value="OK">OK</option></select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Finance Site</label>
+                                    <select id="avFinance"><option value="">Seleccionar...</option><option value="NA">NA</option><option value="IP">IP</option><option value="OK">OK</option></select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Regional Controller</label>
+                                    <select id="avRegional"><option value="">Seleccionar...</option><option value="NA">NA</option><option value="IP">IP</option><option value="OK">OK</option></select>
+                                </div>
+                                <div class="form-group">
+                                    <label>BU TOP Management</label>
+                                    <select id="avTOP"><option value="">Seleccionar...</option><option value="NA">NA</option><option value="IP">IP</option><option value="OK">OK</option></select>
+                                </div>
+                            </div>
+                            <div class="avance-summary" id="avanceSummary">
+                                <span class="avance-label">Avance:</span>
+                                <span class="avance-bar" id="avanceBar"><span class="avance-fill" id="avanceFill"></span></span>
+                                <span class="avance-pct" id="avancePct">0%</span>
+                            </div>
+                            <div class="form-group" style="margin-top: 16px;">
+                                <label for="comments">Comments</label>
+                                <textarea id="comments" rows="3" placeholder="Comentarios generales..."></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Tab: PO Info -->
+                        <div class="tab-content" id="tab-po">
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="poNumber">PO Number</label>
+                                    <input type="text" id="poNumber" placeholder="Ej: PO-2024-001">
+                                </div>
+                                <div class="form-group">
+                                    <label for="supplier">Supplier</label>
+                                    <input type="text" id="supplier" placeholder="Nombre del proveedor">
+                                </div>
+                                <div class="form-group">
+                                    <label for="poCreatedDate">PO Created Date</label>
+                                    <input type="date" id="poCreatedDate">
+                                </div>
+                                <div class="form-group">
+                                    <label for="costo">Costo</label>
+                                    <input type="number" id="costo" step="0.01" min="0" placeholder="0.00">
+                                </div>
+                                <div class="form-group">
+                                    <label for="currency">Currency</label>
+                                    <select id="currency">
+                                        <option value="">Seleccionar...</option>
+                                        <option value="USD">USD</option>
+                                        <option value="EUR">EUR</option>
+                                        <option value="MXN">MXN</option>
+                                        <option value="JPY">JPY</option>
+                                        <option value="GBP">GBP</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>&nbsp;</label>
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" id="notifProveedor">
+                                        Notificación Proveedor
+                                    </label>
+                                </div>
+                                <div class="form-group full-width">
+                                    <label for="commentsPO">Comments PO</label>
+                                    <textarea id="commentsPO" rows="3" placeholder="Comentarios de la PO..."></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tab: Freight -->
+                        <div class="tab-content" id="tab-freight">
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="freight">Freight *</label>
+                                    <select id="freight" required>
+                                        <option value="">Seleccionar...</option>
+                                        <option value="Ground">Ground</option>
+                                        <option value="Ocean">Ocean</option>
+                                        <option value="Air">Air</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="freightDays">Freight Days</label>
+                                    <input type="number" id="freightDays" min="0" placeholder="0">
+                                </div>
+                                <div class="form-group">
+                                    <label for="fabLeadTime">Fabrication Lead Time (días)</label>
+                                    <input type="number" id="fabLeadTime" min="0" placeholder="0">
+                                </div>
+                                <div class="form-group">
+                                    <label>Calculated Pick Up Date</label>
+                                    <input type="text" id="calcPickupDate" readonly class="readonly-field" placeholder="PO Created + Fab Lead Time">
+                                </div>
+                                <div class="form-group">
+                                    <label for="realPickupDate">Real Pick Up Date</label>
+                                    <input type="date" id="realPickupDate">
+                                </div>
+                                <div class="form-group">
+                                    <label>Calculated Date to Receive</label>
+                                    <input type="text" id="calcReceiveDate" readonly class="readonly-field" placeholder="PO Created + Fab Lead Time + Freight Days">
+                                </div>
+                                <div class="form-group">
+                                    <label>Real Date to Receive</label>
+                                    <input type="text" id="realReceiveDate" readonly class="readonly-field" placeholder="Real Pick Up + Freight Days">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tab: Fechas -->
+                        <div class="tab-content" id="tab-fechas">
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label>ETA ELP</label>
+                                    <input type="text" id="etaElp" readonly class="readonly-field" placeholder="Igual a Real Date to Receive">
+                                </div>
+                                <div class="form-group">
+                                    <label for="challengeDate">Challenge Date</label>
+                                    <input type="date" id="challengeDate">
+                                </div>
+                                <div class="form-group">
+                                    <label for="recievedDate">Received Date</label>
+                                    <input type="date" id="recievedDate">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-secondary" id="btnCancelar">Cancelar</button>
+                            <button type="submit" class="btn btn-primary" id="btnGuardar">Guardar SC</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Modal Editar (reutiliza el mismo formulario) -->
+
+    <!-- Modal Confirmar Eliminar -->
+    <div class="modal-overlay" id="modalEliminar">
+        <div class="modal modal-small">
+            <div class="modal-header">
+                <h3>&#9888; Confirmar Eliminación</h3>
+                <button class="modal-close" id="btnCerrarModalEliminar">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>¿Estás seguro de que deseas eliminar la SC <strong id="eliminarNumero"></strong>?</p>
+                <p class="text-muted">Esta acción no se puede deshacer.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="btnCancelarEliminar">Cancelar</button>
+                <button class="btn btn-danger" id="btnConfirmarEliminar">Eliminar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- Hidden file input for import -->
+    <input type="file" id="fileInputJSON" accept=".json" style="display: none;">
+
+    <script src="app.js"></script>
+</body>
+</html>
